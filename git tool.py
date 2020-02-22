@@ -6,16 +6,18 @@ import os, shutil
 import errno
 import filecmp
 from filecmp import dircmp
+import time
 
 
 
 #commit_start = int(input("How many commits ago do you want to start the process with"))
 
-
+#below: the url and directory which you want to clone into
 localdirectory = "D:\\Documents\\Group research project\\Research tool test\\newest\\researchtool"
 testinggiturl = "https://github.com/tigerater/researchtool.git"
-gitdirectory = "D:\\Documents\\Group research project\\Research tool test\\original\\System_and_network_team20"
-giturl = "https://github.com/tigerater/System_and_network_team20.git"
+#below: url and directory of the project you want to clone (for the directoy replace \ with \\)
+gitdirectory = "D:\\Documents\\Group research project\\react"
+giturl = "https://github.com/facebook/react.git"
 
 
 #print(list(repo.git.log(p=True)))
@@ -23,10 +25,10 @@ giturl = "https://github.com/tigerater/System_and_network_team20.git"
 
 
 
-
+#iteration not working, need to create empty folder instead of copying over, TODO
 def add_diff_files(dcmp):
     for name in dcmp.right_only:
-        print(name)
+        #print(name)
         origin = dcmp.right + "\\" + name
         destfolder = dcmp.left + "\\" + name
         destination = dcmp.left
@@ -34,12 +36,14 @@ def add_diff_files(dcmp):
             shutil.copy(origin, destination)
         else:
             shutil.copytree(origin, destfolder)
+        #dcmp = dircmp(localdirectory, gitdirectory) 
     for sub_dcmp in dcmp.subdirs.values():
+        #print("tiger")
         add_diff_files(sub_dcmp)
 
 def delete_diff_files(dcmp):
     for name in dcmp.left_only:
-        print(name)
+        #print(name)
         todelete = dcmp.left + "\\" + name
         if os.path.isfile(todelete):
             os.remove(todelete)
@@ -50,7 +54,7 @@ def delete_diff_files(dcmp):
 
 def merge_diff_files(dcmp):
     for name in dcmp.diff_files:
-        print(name)
+        #print(name)
         origin = dcmp.right + "\\" + name
         destfolder = dcmp.left + "\\" + name
         destination = dcmp.left
@@ -59,9 +63,9 @@ def merge_diff_files(dcmp):
             shutil.copy(origin, destination)
         else:
             shutil.rmtree(destfolder)
-            shutil.copytree(origin, destfolder)
+            os.mkdir(destfolder)
     for sub_dcmp in dcmp.subdirs.values():
-        add_diff_files(sub_dcmp)
+        merge_diff_files(sub_dcmp)
 
 
 current_original_commit = 0
@@ -76,20 +80,26 @@ def main():
         repo = git.Repo(gitdirectory)
         repo2 = git.Repo(localdirectory)
     originalrepo = Git(gitdirectory)
-    commits = list(repo.iter_commits("master", max_count=100))
+    commits = list(repo.iter_commits("master", max_count=1000000))
     tree = repo.head.commit.tree
 
+    
+    
+    print(originalrepo.branch())
+    
     stay = True
     current_original_commit = 0
 
-    print("quit to quit, current to check current commit sha, < for past one, > for future one, number for type commit number you want")
+    print("quit to quit, current to check current commit sha, < for past one, > for future one, number for type commit number you want, \"complete\" to go back to a commit and update commits until up to newest")
+    iterate = 0
     while stay:
-        
-        userinput = input("input: ")
+        if iterate == 0:
+            userinput = input("input: ")
         if userinput == "quit":
             stay = False
         elif userinput == "current":
             print(repo.head.commit)
+            print(originalrepo.committed_date)
             print("commits in the past = "+ str(current_original_commit))
             continue
         elif userinput == ">":
@@ -108,22 +118,43 @@ def main():
             if int(userinput) < len(commits) and int(userinput) >= 0:
                 current_original_commit = int(userinput)
             else:
-                print("you tried to go out of range")
+                print("you tried to go out of range, max range is: " + str(len(commits)))
                 continue
+        elif userinput == "complete" or iterate == 1:
+            if iterate == 0:
+                firstcommitnumber = int(input("How far back would you like to go in commits? Input: "))
+                if firstcommitnumber > len(commits):
+                    print("sorry, you have gone out of the scope of the project. There are " + str(len(commits)) + " total commits")
+                else:
+                    start_time = time.time()
+                    current_original_commit = firstcommitnumber - 1
+                    iterate = 1
+            if iterate == 1:
+                if current_original_commit > 0:
+                    current_original_commit -=1
+                else:
+                    time_elapsed = time.time() - start_time
+                    print("You have reached the final newest commit (shown below) in " + str(time_elapsed))
+                    iterate = 0
+            
         else:
             print("sorry, not recognised try again")
             continue
         originalrepo.checkout(commits[current_original_commit])
+
+        
+
         
         
 
         dcmp = dircmp(localdirectory, gitdirectory) 
-        print("files and folders added:")
+        #print("files and folders added:")
         add_diff_files(dcmp)
-        print("files and folders removed:")
+        #print("files and folders removed:")
         delete_diff_files(dcmp)
-        print("files and folders replaced:")
+        #print("files and folders replaced:")
         merge_diff_files(dcmp)
+        #print("DIFFERENCES" + str(dcmp.left_only) + str(dcmp.right_only) +str(dcmp.diff_files))
         print("changes complete, starting commit number: " + str(current_original_commit) + " commit(s) from the newest commit. hash: " + str(commits[current_original_commit]))
         #try:
         repo2 = Repo(localdirectory)
@@ -139,8 +170,6 @@ def main():
         #except:
             #print('Some error occured while pushing the code')  
 
-        
-        
     
 main()
 
@@ -148,40 +177,3 @@ print("quitting")
 
 
 
-
-
-
-
-"""
-for c in commits:
-    # reset to previous commit
-    #repo.head.reset('HEAD~1', index = True, working_tree = True)
-    repo.git.reset('--hard')
-    # unique SHA key
-    #sha = c.name_rev.split()[0] 
-    #shutil.copytree(gitdirectory, localdirectory)
-    print("ok")
-
-
-#commits = repo.iter_commits('--all', max_count=100, since='10.days.ago', paths=path)
-
-#repo location on drive here
-#g = Git('D:\\testing')
-
-def git_push(repo):
-    #try:
-        repo.git.add(update=True)
-        repo.index.commit("tiger test")
-        origin = repo.remote(name='origin')
-        origin.push()
-    #except:
-        #print('Some error occured while pushing the code')    
-
-git_push(repo)
-
-
-
-
-#tag name here
-#g.checkout('tag')
-"""
