@@ -43,3 +43,14 @@ Newest commit is 0
 
 dw about hitting limits, it wont crash
 
+# Proposed repositories in question
+
+https://github.com/microsoft/vscode 
+
+https://github.com/mirumee/saleor
+
+https://github.com/influxdata/influxdb
+
+https://github.com/nextcloud/server
+
+
