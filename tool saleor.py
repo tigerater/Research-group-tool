@@ -13,15 +13,14 @@ import time
 #commit_start = int(input("How many commits ago do you want to start the process with"))
 
 #below: the url and directory which you want to clone into
-localdirectory = "D:\\Documents\\Group research project\\MAIN NEW\\vscodefinal"
-testinggiturl = "https://github.com/Research-Project-COMP0031/vscodefinal.git"
+localdirectory = "D:\\Documents\\Group research project\\MAIN NEW\\saleorfinal"
+testinggiturl = "https://github.com/Research-Project-COMP0031/saleorfinal.git"
 #below: url and directory of the project you want to clone (for the directoy replace \ with \\)
-gitdirectory = "D:\\Documents\\Group research project\\4bigprojects\\vscode"
-giturl = "https://github.com/microsoft/vscode.git"
+gitdirectory = "D:\\Documents\\Group research project\\4bigprojects\\saleor"
+giturl = "https://github.com/mirumee/saleor.git"
 
 
 #print(list(repo.git.log(p=True)))
-
 
 
 
@@ -69,7 +68,6 @@ def merge_diff_files(dcmp):
 
 
 current_original_commit = 0
-
 
 def main():
     #make sure the directory is empty
@@ -199,6 +197,7 @@ def main():
 main()
 
 print("quitting")
+
 
 
 
